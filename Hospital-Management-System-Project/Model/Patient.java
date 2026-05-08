@@ -1,5 +1,6 @@
 package Model;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +23,7 @@ public class Patient implements Displayable {
     private String name;
     private int age;
     private String gender;
-    private String date_of_birth;               // Format: YYYY-MM-DD
+    private LocalDate dateOfBirth;              // Using LocalDate for proper date handling
     private String phone;
     private List<Appointment> appointments;     // Patient's appointment history
     
@@ -34,15 +35,15 @@ public class Patient implements Displayable {
      * @param name Patient's full name
      * @param age Patient's age
      * @param gender Patient's gender
-     * @param date_of_birth Patient's date of birth (YYYY-MM-DD)
+     * @param dateOfBirth Patient's date of birth (LocalDate)
      * @param phone Patient's contact phone number
      */
-    public Patient(String name, int age, String gender, String date_of_birth, String phone) {
+    public Patient(String name, int age, String gender, LocalDate dateOfBirth, String phone) {
         // Always call setters in the constructor to trigger validation logic
         setName(name);
         setAge(age);
         setGender(gender);
-        setDate_of_birth(date_of_birth);
+        setDateOfBirth(dateOfBirth);
         setPhone(phone);
         this.appointments = new ArrayList<>();  // Initialize empty appointment list
         patientCount++;
@@ -97,16 +98,16 @@ public class Patient implements Displayable {
 
     /**
      * Sets the patient date of birth
-     * Logic: Ensures valid date format
-     * @param date_of_birth The date of birth (YYYY-MM-DD format)
+     * Logic: Ensures date is not in the future and is a valid LocalDate
+     * @param dateOfBirth The date of birth (LocalDate)
      */
-    public void setDate_of_birth(String date_of_birth) {
-        // Logic: Basic check to ensure it's not an empty string
-        // (In a real app, you would check if the date is in the future)
-        if (date_of_birth == null || !date_of_birth.contains("-")) {
-            this.date_of_birth = "0000-00-00";
+    public void setDateOfBirth(LocalDate dateOfBirth) {
+        // Logic: Check if date is valid and not in the future
+        if (dateOfBirth == null || dateOfBirth.isAfter(LocalDate.now())) {
+            System.out.println("Error: Invalid date of birth. Must be today or in the past.");
+            this.dateOfBirth = LocalDate.of(1900, 1, 1);
         } else {
-            this.date_of_birth = date_of_birth;
+            this.dateOfBirth = dateOfBirth;
         }
     }
 
@@ -158,10 +159,18 @@ public class Patient implements Displayable {
 
     /**
      * Gets the patient date of birth
-     * @return Date of birth formatted for display
+     * @return Date of birth as LocalDate
      */
-    public String getDate_of_birth() {
-        return "DOB: " + date_of_birth;
+    public LocalDate getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    /**
+     * Gets the patient date of birth formatted for display
+     * @return Date of birth formatted as string
+     */
+    public String getDateOfBirthDisplay() {
+        return "DOB: " + dateOfBirth;
     }
 
     /**
@@ -199,7 +208,7 @@ public class Patient implements Displayable {
         System.out.println("Name: " + name);
         System.out.println("Age: " + age + " years");
         System.out.println("Gender: " + getGender());
-        System.out.println("Date of Birth: " + date_of_birth);
+        System.out.println("Date of Birth: " + dateOfBirth);
         System.out.println("Phone: " + getPhone());
         System.out.println("Total Appointments: " + appointments.size());
         System.out.println("========================");
@@ -298,7 +307,7 @@ public class Patient implements Displayable {
         return "Patient: " + name + 
                " | Age: " + age + 
                " | Gender: " + getGender() +
-               " | DOB: " + date_of_birth +
+               " | DOB: " + dateOfBirth +
                " | Phone: " + getPhone() +
                " | Appointments: " + getAppointmentCount();
     }

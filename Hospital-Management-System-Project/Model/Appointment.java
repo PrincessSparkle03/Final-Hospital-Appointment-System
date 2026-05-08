@@ -1,5 +1,8 @@
 package Model;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+
 /**
  * Appointment Class
  * 
@@ -162,7 +165,15 @@ public class Appointment implements Displayable, StatusManageable {
      * @return Date in YYYY-MM-DD format
      */
     public String getDate() {
-        return (timeSlot != null) ? timeSlot.getDate() : "Not Set";
+        return (timeSlot != null) ? timeSlot.getDate().toString() : "Not Set";
+    }
+
+    /**
+     * Gets the date as LocalDate
+     * @return Date as LocalDate object
+     */
+    public LocalDate getDateAsLocalDate() {
+        return (timeSlot != null) ? timeSlot.getDate() : null;
     }
 
     /**
@@ -171,6 +182,14 @@ public class Appointment implements Displayable, StatusManageable {
      */
     public String getTime() {
         return (timeSlot != null) ? timeSlot.getStart() + " (Scheduled)" : "Not Set";
+    }
+
+    /**
+     * Gets the time as LocalTime
+     * @return Time as LocalTime object
+     */
+    public LocalTime getTimeAsLocalTime() {
+        return (timeSlot != null) ? timeSlot.getStartTime() : null;
     }
 
     /**

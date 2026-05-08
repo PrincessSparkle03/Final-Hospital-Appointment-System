@@ -1,5 +1,8 @@
 package Model;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+
 /**
  * TimeSlot Class
  * 
@@ -16,18 +19,18 @@ package Model;
  */
 public class TimeSlot implements Displayable, Bookable {
     // Private fields - encapsulated data
-    private String date;        // Format: YYYY-MM-DD
-    private String start;       // Format: HH:MM
-    private String end;         // Format: HH:MM
-    private boolean isAvailable; // Tracks if this slot can be booked
+    private LocalDate date;       // Using LocalDate for proper date handling
+    private LocalTime start;      // Using LocalTime for proper time handling
+    private LocalTime end;        // Using LocalTime for proper time handling
+    private boolean isAvailable;  // Tracks if this slot can be booked
 
     /**
      * Constructor: Creates a TimeSlot with date and time range
-     * @param date The date of this slot (YYYY-MM-DD format)
-     * @param start The start time (HH:MM format)
-     * @param end The end time (HH:MM format)
+     * @param date The date of this slot (LocalDate)
+     * @param start The start time (LocalTime)
+     * @param end The end time (LocalTime)
      */
-    public TimeSlot(String date, String start, String end) {
+    public TimeSlot(LocalDate date, LocalTime start, LocalTime end) {
         setDate(date);
         setStart(start);
         setEnd(end);
@@ -38,43 +41,85 @@ public class TimeSlot implements Displayable, Bookable {
 
     /**
      * Sets the date for this time slot
-     * Logic: Ensures date is in YYYY-MM-DD format
-     * @param date The date (YYYY-MM-DD format)
+     * Logic: Ensures date is valid and not in the past
+     * @param date The date (LocalDate)
      */
-    public void setDate(String date) {
-        if (date == null || !date.matches("\\d{4}-\\d{2}-\\d{2}")) {
-            System.out.println("Warning: Invalid date format. Expected YYYY-MM-DD");
-            this.date = "0000-00-00";
+    public void setDate(LocalDate date) {
+        if (date == null || date.isBefore(LocalDate.now())) {
+            System.out.println("Warning: Invalid date. Date cannot be in the past.");
+            this.date = LocalDate.now();
         } else {
             this.date = date;
         }
     }
 
     /**
-     * Sets the start time for this slot
-     * Logic: Basic validation to ensure time isn't empty
-     * @param start The start time (HH:MM format)
+     * Sets the date from a String (alternative constructor for parsing)
+     * @param dateString The date as a string (YYYY-MM-DD format)
      */
-    public void setStart(String start) {
-        if (start == null || start.isEmpty() || !start.matches("\\d{2}:\\d{2}")) {
-            System.out.println("Warning: Invalid start time format. Expected HH:MM");
-            this.start = "00:00";
+    public void setDateFromString(String dateString) {
+        try {
+            LocalDate parsedDate = LocalDate.parse(dateString);
+            setDate(parsedDate);
+        } catch (Exception e) {
+            System.out.println("Warning: Invalid date format. Expected YYYY-MM-DD");
+            this.date = LocalDate.now();
+        }
+    }
+
+    /**
+     * Sets the start time for this slot
+     * Logic: Ensures time is valid
+     * @param start The start time (LocalTime)
+     */
+    public void setStart(LocalTime start) {
+        if (start == null) {
+            System.out.println("Warning: Invalid start time.");
+            this.start = LocalTime.of(9, 0);
         } else {
             this.start = start;
         }
     }
 
     /**
-     * Sets the end time for this slot
-     * Logic: Basic validation
-     * @param end The end time (HH:MM format)
+     * Sets the start time from a String (alternative for parsing)
+     * @param startString The start time as a string (HH:MM format)
      */
-    public void setEnd(String end) {
-        if (end == null || end.isEmpty() || !end.matches("\\d{2}:\\d{2}")) {
-            System.out.println("Warning: Invalid end time format. Expected HH:MM");
-            this.end = "00:00";
+    public void setStartFromString(String startString) {
+        try {
+            LocalTime parsedTime = LocalTime.parse(startString);
+            setStart(parsedTime);
+        } catch (Exception e) {
+            System.out.println("Warning: Invalid start time format. Expected HH:MM");
+            this.start = LocalTime.of(9, 0);
+        }
+    }
+
+    /**
+     * Sets the end time for this slot
+     * Logic: Ensures time is valid and after start time
+     * @param end The end time (LocalTime)
+     */
+    public void setEnd(LocalTime end) {
+        if (end == null || (start != null && end.isBefore(start))) {
+            System.out.println("Warning: Invalid end time. Must be after start time.");
+            this.end = (start != null) ? start.plusHours(1) : LocalTime.of(17, 0);
         } else {
             this.end = end;
+        }
+    }
+
+    /**
+     * Sets the end time from a String (alternative for parsing)
+     * @param endString The end time as a string (HH:MM format)
+     */
+    public void setEndFromString(String endString) {
+        try {
+            LocalTime parsedTime = LocalTime.parse(endString);
+            setEnd(parsedTime);
+        } catch (Exception e) {
+            System.out.println("Warning: Invalid end time format. Expected HH:MM");
+            this.end = LocalTime.of(17, 0);
         }
     }
 
@@ -91,10 +136,18 @@ public class TimeSlot implements Displayable, Bookable {
 
     /**
      * Gets the date of this time slot
+     * @return The date as LocalDate
+     */
+    public LocalDate getDate() {
+        return date;
+    }
+
+    /**
+     * Gets the date formatted as a String
      * @return The date in YYYY-MM-DD format
      */
-    public String getDate() {
-        return date;
+    public String getDateAsString() {
+        return date.toString();
     }
 
     /**
@@ -106,12 +159,20 @@ public class TimeSlot implements Displayable, Bookable {
     }
 
     /**
+     * Gets the start time as LocalTime
+     * @return The raw start time (LocalTime)
+     */
+    public LocalTime getStartTime() {
+        return start;
+    }
+
+    /**
      * Gets the start time without formatting (raw value)
      * Useful for time comparisons and validations
-     * @return The raw start time (HH:MM format)
+     * @return The raw start time as string (HH:MM format)
      */
     public String getStartRaw() {
-        return start;
+        return start.toString();
     }
 
     /**
@@ -123,11 +184,19 @@ public class TimeSlot implements Displayable, Bookable {
     }
 
     /**
+     * Gets the end time as LocalTime
+     * @return The raw end time (LocalTime)
+     */
+    public LocalTime getEndTime() {
+        return end;
+    }
+
+    /**
      * Gets the end time without formatting (raw value)
-     * @return The raw end time (HH:MM format)
+     * @return The raw end time as string (HH:MM format)
      */
     public String getEndRaw() {
-        return end;
+        return end.toString();
     }
 
     /**

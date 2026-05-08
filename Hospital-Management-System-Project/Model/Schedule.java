@@ -1,16 +1,17 @@
 package Model;
 
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Schedule implements Displayable, Bookable {
     private String day;
     private List<TimeSlot> slots;
-    private String startTime;
-    private String endTime;
-    private boolean isAvailable; // If false, the doctor is on holiday/leave that day
+    private LocalTime startTime;                // Using LocalTime for proper time handling
+    private LocalTime endTime;                  // Using LocalTime for proper time handling
+    private boolean isAvailable;                // If false, the doctor is on holiday/leave that day
 
-    public Schedule(String day, List<TimeSlot> slots, String startTime, String endTime, boolean isAvailable) {
+    public Schedule(String day, List<TimeSlot> slots, LocalTime startTime, LocalTime endTime, boolean isAvailable) {
         setDay(day);
         setStartTime(startTime);
         setEndTime(endTime);
@@ -29,25 +30,53 @@ public class Schedule implements Displayable, Bookable {
         }
     }
 
-    public void setStartTime(String startTime) {
+    public void setStartTime(LocalTime startTime) {
         // Logic: Default to standard opening hours if input is invalid
-        if (startTime == null || !startTime.contains(":")) {
-            this.startTime = "09:00";
+        if (startTime == null) {
+            this.startTime = LocalTime.of(9, 0);
         } else {
             this.startTime = startTime;
         }
     }
 
-    public void setEndTime(String endTime) {
+    /**
+     * Sets the start time from a String (alternative for parsing)
+     * @param startTimeString The start time as a string (HH:MM format)
+     */
+    public void setStartTimeFromString(String startTimeString) {
+        try {
+            LocalTime parsedTime = LocalTime.parse(startTimeString);
+            setStartTime(parsedTime);
+        } catch (Exception e) {
+            System.out.println("Warning: Invalid start time format. Expected HH:MM");
+            this.startTime = LocalTime.of(9, 0);
+        }
+    }
+
+    public void setEndTime(LocalTime endTime) {
         /* 
            Logic: CRITICAL BUSINESS RULE
            The End Time cannot be BEFORE the Start Time.
            If it is, we automatically set it to 1 hour after Start Time.
         */
-        if (endTime == null || endTime.compareTo(this.startTime) <= 0) {
-            this.endTime = "17:00"; // Fallback to standard closing
+        if (endTime == null || (this.startTime != null && endTime.isBefore(this.startTime))) {
+            this.endTime = LocalTime.of(17, 0); // Fallback to standard closing
         } else {
             this.endTime = endTime;
+        }
+    }
+
+    /**
+     * Sets the end time from a String (alternative for parsing)
+     * @param endTimeString The end time as a string (HH:MM format)
+     */
+    public void setEndTimeFromString(String endTimeString) {
+        try {
+            LocalTime parsedTime = LocalTime.parse(endTimeString);
+            setEndTime(parsedTime);
+        } catch (Exception e) {
+            System.out.println("Warning: Invalid end time format. Expected HH:MM");
+            this.endTime = LocalTime.of(17, 0);
         }
     }
 
@@ -68,6 +97,22 @@ public class Schedule implements Displayable, Bookable {
 
     public String getDay() {
         return this.day;
+    }
+
+    /**
+     * Gets the start time as LocalTime
+     * @return The start time (LocalTime)
+     */
+    public LocalTime getStartTime() {
+        return this.startTime;
+    }
+
+    /**
+     * Gets the end time as LocalTime
+     * @return The end time (LocalTime)
+     */
+    public LocalTime getEndTime() {
+        return this.endTime;
     }
 
     public String getShiftDuration() {

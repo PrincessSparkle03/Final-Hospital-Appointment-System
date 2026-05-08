@@ -5,6 +5,8 @@ import Model.Doctor;
 import Model.Patient;
 import Model.Schedule;
 import Model.TimeSlot;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,9 +41,9 @@ public class Main {
         // 1. CREATE PATIENTS
         // ============================================
         System.out.println("--- REGISTERING PATIENTS ---");
-        Patient patient1 = new Patient("John Doe", 25, "Male", "1999-01-01", "01234567890");
-        Patient patient2 = new Patient("Jane Smith", 30, "Female", "1994-05-15", "09876543210");
-        Patient patient3 = new Patient("Michael Johnson", 45, "Male", "1979-03-20", "08765432109");
+        Patient patient1 = new Patient("John Doe", 25, "Male", LocalDate.of(1999, 1, 1), "01234567890");
+        Patient patient2 = new Patient("Jane Smith", 30, "Female", LocalDate.of(1994, 5, 15), "09876543210");
+        Patient patient3 = new Patient("Michael Johnson", 45, "Male", LocalDate.of(1979, 3, 20), "08765432109");
 
         hospital.registerPatient(patient1);
         hospital.registerPatient(patient2);
@@ -204,16 +206,16 @@ public class Main {
     private static Schedule generateWeeklySchedule() {
         List<TimeSlot> allSlots = new ArrayList<>();
         
-        // Monday slots
-        allSlots.add(new TimeSlot("2024-01-08", "09:00", "10:00"));
-        allSlots.add(new TimeSlot("2024-01-08", "10:00", "11:00"));
-        allSlots.add(new TimeSlot("2024-01-08", "11:00", "12:00"));
-        allSlots.add(new TimeSlot("2024-01-08", "14:00", "15:00"));
+        // Monday slots (using future date)
+        allSlots.add(new TimeSlot(LocalDate.of(2026, 5, 12), LocalTime.of(9, 0), LocalTime.of(10, 0)));
+        allSlots.add(new TimeSlot(LocalDate.of(2026, 5, 12), LocalTime.of(10, 0), LocalTime.of(11, 0)));
+        allSlots.add(new TimeSlot(LocalDate.of(2026, 5, 12), LocalTime.of(11, 0), LocalTime.of(12, 0)));
+        allSlots.add(new TimeSlot(LocalDate.of(2026, 5, 12), LocalTime.of(14, 0), LocalTime.of(15, 0)));
 
         // Tuesday slots
-        allSlots.add(new TimeSlot("2024-01-09", "09:00", "10:00"));
-        allSlots.add(new TimeSlot("2024-01-09", "10:00", "11:00"));
+        allSlots.add(new TimeSlot(LocalDate.of(2026, 5, 13), LocalTime.of(9, 0), LocalTime.of(10, 0)));
+        allSlots.add(new TimeSlot(LocalDate.of(2026, 5, 13), LocalTime.of(10, 0), LocalTime.of(11, 0)));
 
-        return new Schedule("Weekly", allSlots, "09:00", "17:00", true);
+        return new Schedule("Weekly", allSlots, LocalTime.of(9, 0), LocalTime.of(17, 0), true);
     }
 }
