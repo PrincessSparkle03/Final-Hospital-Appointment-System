@@ -5,26 +5,31 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Patient Class
+ * Patient Class - Subclass of Person
  * 
  * Represents a patient in the hospital system.
- * Stores patient demographics and maintains appointment history.
+ * Inherits common attributes from Person (name, phone).
+ * Stores patient-specific demographics and maintains appointment history.
+ * 
+ * Inheritance:
+ * - Extends Person: Patient IS a Person
+ * - Inherits: name, phone, getName(), getPhone()
+ * - Adds: age, gender, dateOfBirth, appointments
  * 
  * Key Relationships:
  * - Patient → ArrayList<Appointment> (appointment history)
  * 
  * Access Modifiers:
- * - Private: name, age, gender, date_of_birth, phone, appointments (encapsulated data)
+ * - Protected (inherited): name, phone (from Person)
+ * - Private: age, gender, date_of_birth, appointments (encapsulated data)
  * - Private Static: patientCount (static counter)
  * - Public: Getters, setters, appointment management methods (interface)
  */
-public class Patient implements Displayable {
-    // Private fields - encapsulated data
-    private String name;
+public class Patient extends Person implements Displayable {
+    // Private fields - patient-specific encapsulated data
     private int age;
     private String gender;
     private LocalDate dateOfBirth;              // Using LocalDate for proper date handling
-    private String phone;
     private List<Appointment> appointments;     // Patient's appointment history
     
     // Private static field - tracks total patients created
@@ -39,31 +44,18 @@ public class Patient implements Displayable {
      * @param phone Patient's contact phone number
      */
     public Patient(String name, int age, String gender, LocalDate dateOfBirth, String phone) {
-        // Always call setters in the constructor to trigger validation logic
-        setName(name);
+        // Call superclass constructor to initialize inherited fields
+        super(name, phone);
+        
+        // Initialize patient-specific fields using setters to trigger validation logic
         setAge(age);
         setGender(gender);
         setDateOfBirth(dateOfBirth);
-        setPhone(phone);
         this.appointments = new ArrayList<>();  // Initialize empty appointment list
         patientCount++;
     }
 
     // --- SETTERS (Mutators) with Business Logic ---
-
-    /**
-     * Sets the patient name
-     * Logic: A patient name cannot be empty or too short
-     * @param name The patient's full name
-     */
-    public void setName(String name) {
-        // Logic: A patient name cannot be a number or empty.
-        if (name == null || name.trim().length() < 2) {
-            this.name = "Invalid Name";
-        } else {
-            this.name = name;
-        }
-    }
 
     /**
      * Sets the patient age
@@ -111,30 +103,7 @@ public class Patient implements Displayable {
         }
     }
 
-    /**
-     * Sets the patient phone number
-     * Logic: Validates phone number length
-     * @param phone The patient's phone number
-     */
-    public void setPhone(String phone) {
-        // Logic: A phone number should usually have at least 10 digits
-        if (phone != null && phone.replaceAll("[^0-9]", "").length() >= 10) {
-            this.phone = phone;
-        } else {
-            this.phone = "Invalid Phone Number";
-        }
-    }
-
     // --- GETTERS (Accessors) with Business Logic ---
-
-    /**
-     * Gets the patient name
-     * @return The patient's full name
-     */
-    public String getName() {
-        // Logic: Return the name as entered
-        return name;
-    }
 
     /**
      * Gets the patient age
@@ -171,19 +140,6 @@ public class Patient implements Displayable {
      */
     public String getDateOfBirthDisplay() {
         return "DOB: " + dateOfBirth;
-    }
-
-    /**
-     * Gets the patient phone number (masked for privacy)
-     * @return Phone number with first digits masked
-     */
-    public String getPhone() {
-        // Logic: Mask the phone number for privacy (Security logic)
-        // Show only the last 4 digits: *******1234
-        if (phone.length() > 4) {
-            return "*******" + phone.substring(phone.length() - 4);
-        }
-        return phone;
     }
 
     /**

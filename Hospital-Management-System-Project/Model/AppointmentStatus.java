@@ -3,8 +3,9 @@ package Model;
 /**
  * AppointmentStatus Enum
  * 
- * Represents the possible states of an appointment throughout its lifecycle.
- * This ensures consistent status tracking and prevents invalid state transitions.
+ * Represents the possible states of an appointment.
+ * Week 6 Feedback: Simplified to only track Booked and Cancelled states.
+ * Availability control is managed at the Appointment class level.
  */
 public enum AppointmentStatus {
     /**
@@ -15,21 +16,9 @@ public enum AppointmentStatus {
     
     /**
      * CANCELLED: Appointment has been cancelled by patient or doctor.
-     * The time slot becomes available again for other patients.
+     * The time slot becomes available again for other patients/doctors.
      */
-    CANCELLED("Cancelled"),
-    
-    /**
-     * COMPLETED: Appointment has been completed.
-     * Patient has seen the doctor and treatment/consultation is finished.
-     */
-    COMPLETED("Completed"),
-    
-    /**
-     * RESCHEDULED: Appointment was cancelled and rescheduled to a different time.
-     * This represents the transition state during rescheduling.
-     */
-    RESCHEDULED("Rescheduled");
+    CANCELLED("Cancelled");
     
     // Display value for status
     private final String displayValue;

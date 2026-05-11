@@ -50,17 +50,17 @@ public class Main {
         hospital.registerPatient(patient3);
 
         // ============================================
-        // 2 & 3 & 4. CREATE SCHEDULES AND DOCTORS
+        // 2 & 3 & 4. CREATE SHARED SCHEDULE & DOCTORS
         // ============================================
-        System.out.println("\n--- CREATING DOCTOR SCHEDULES & REGISTERING DOCTORS ---");
+        System.out.println("\n--- CREATING SHARED SCHEDULE & REGISTERING DOCTORS ---");
         
-        // FIXED: We use a helper method to generate distinct TimeSlot objects for each doctor.
-        // If doctors share the exact same TimeSlot list, booking Doctor A will incorrectly mark Doctor B as unavailable.
-        // FIXED: Doctors now take a SINGLE Schedule object instead of a List, satisfying the rubric.
+        // PROFESSOR FEEDBACK: Create ONE shared schedule for all doctors
+        // All doctors use the same time slots - availability controlled by Appointment status
+        Schedule sharedSchedule = generateWeeklySchedule();
         
-        Doctor doctor1 = new Doctor("Gregory House", "Diagnostic Medicine", 150.0, generateWeeklySchedule());
-        Doctor doctor2 = new Doctor("Lisa Cuddy", "Internal Medicine", 160.0, generateWeeklySchedule());
-        Doctor doctor3 = new Doctor("Robert Chase", "Cardiology", 180.0, generateWeeklySchedule());
+        Doctor doctor1 = new Doctor("Gregory House", "Diagnostic Medicine", 150.0, sharedSchedule);
+        Doctor doctor2 = new Doctor("Lisa Cuddy", "Internal Medicine", 160.0, sharedSchedule);
+        Doctor doctor3 = new Doctor("Robert Chase", "Cardiology", 180.0, sharedSchedule);
 
         hospital.registerDoctor(doctor1);
         hospital.registerDoctor(doctor2);
@@ -79,28 +79,28 @@ public class Main {
         // ============================================
         System.out.println("\n--- BOOKING APPOINTMENTS ---");
         
-        // Fetch specific distinct time slots from the doctors' schedules to book
-        TimeSlot doc1_monday_09_10 = doctor1.getSchedule().getSlots().get(0);
-        TimeSlot doc1_monday_10_11 = doctor1.getSchedule().getSlots().get(1);
-        TimeSlot doc2_monday_09_10 = doctor2.getSchedule().getSlots().get(0);
+        // Fetch shared time slots - all doctors can use the same slots
+        TimeSlot slot_monday_09_10 = sharedSchedule.getSlots().get(0);
+        TimeSlot slot_monday_10_11 = sharedSchedule.getSlots().get(1);
+        TimeSlot slot_monday_11_12 = sharedSchedule.getSlots().get(2);
 
         // Appointment 1: Patient 1 with Doctor 1 on Monday 09:00-10:00
         System.out.println("\nBooking: Patient1 with Doctor1 on Monday 09:00");
-        Appointment app1 = hospital.bookAppointment(patient1, doctor1, doc1_monday_09_10);
+        Appointment app1 = hospital.bookAppointment(patient1, doctor1, slot_monday_09_10);
         if (app1 != null) {
             System.out.println(app1.toString());
         }
 
         // Appointment 2: Patient 2 with Doctor 1 on Monday 10:00-11:00
         System.out.println("\nBooking: Patient2 with Doctor1 on Monday 10:00");
-        Appointment app2 = hospital.bookAppointment(patient2, doctor1, doc1_monday_10_11);
+        Appointment app2 = hospital.bookAppointment(patient2, doctor1, slot_monday_10_11);
         if (app2 != null) {
             System.out.println(app2.toString());
         }
 
-        // Appointment 3: Patient 3 with Doctor 2 on Monday 09:00-10:00
-        System.out.println("\nBooking: Patient3 with Doctor2 on Monday 09:00");
-        Appointment app3 = hospital.bookAppointment(patient3, doctor2, doc2_monday_09_10);
+        // Appointment 3: Patient 3 with Doctor 2 on Monday 09:00-10:00 (SAME SLOT AS APP1, DIFFERENT DOCTOR)
+        System.out.println("\nBooking: Patient3 with Doctor2 on Monday 09:00 (same slot, different doctor)");
+        Appointment app3 = hospital.bookAppointment(patient3, doctor2, slot_monday_09_10);
         if (app3 != null) {
             System.out.println(app3.toString());
         }
@@ -110,18 +110,18 @@ public class Main {
         // ============================================
         System.out.println("\n--- TESTING DUPLICATE APPOINTMENT PREVENTION ---");
         
-        // Try to book doctor1 at overlapping time (should fail)
+        // Try to book doctor1 at overlapping time (should fail - doctor1 already has appointment at this time)
         System.out.println("\nAttempting to book Doctor1 at same Monday 09:00 time (should fail):");
-        Appointment failedApp = hospital.bookAppointment(patient2, doctor1, doc1_monday_09_10);
+        Appointment failedApp = hospital.bookAppointment(patient2, doctor1, slot_monday_09_10);
         if (failedApp == null) {
-            System.out.println("✓ Duplicate appointment correctly prevented!");
+            System.out.println("✓ Duplicate appointment for Doctor1 correctly prevented!");
         }
 
-        // Try to book the same time slot twice (should fail)
-        System.out.println("\nAttempting to book already reserved Monday 09:00 slot for Doctor 2 (should fail):");
-        Appointment failedApp2 = hospital.bookAppointment(patient1, doctor2, doc2_monday_09_10);
-        if (failedApp2 == null) {
-            System.out.println("✓ Double-booking correctly prevented!");
+        // Doctor 3 can book the same time slot (different doctor)
+        System.out.println("\nAttempting to book Doctor3 at Monday 09:00 (different doctor, should succeed):");
+        Appointment app4 = hospital.bookAppointment(patient2, doctor3, slot_monday_09_10);
+        if (app4 != null) {
+            System.out.println(app4.toString());
         }
 
         // ============================================
@@ -136,7 +136,6 @@ public class Main {
             System.out.println("Cancelling appointment 1...");
             hospital.cancelAppointment(app1);
             System.out.println("Appointment 1 New Status: " + app1.getStatusDisplay());
-            System.out.println("Time slot availability after cancellation: " + doc1_monday_09_10.isAvailable());
             
             // Try to cancel again (should fail)
             System.out.println("\nAttempting to cancel already cancelled appointment (should fail):");
@@ -145,9 +144,6 @@ public class Main {
                 System.out.println("✓ Cannot cancel non-BOOKED appointment!");
             }
         }
-
-        // ============================================
-        // 8. DISPLAY SYSTEM REPORT
         // ============================================
         System.out.println(hospital.generateSystemReport());
 

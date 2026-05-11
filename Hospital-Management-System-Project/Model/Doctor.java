@@ -4,23 +4,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Doctor Class
+ * Doctor Class - Subclass of Person
  * 
  * Represents a doctor in the hospital system.
- * Manages doctor information, availability schedule, and appointments.
+ * Inherits common attributes from Person (name, phone).
+ * Manages doctor-specific information, availability schedule, and appointments.
+ * 
+ * Inheritance:
+ * - Extends Person: Doctor IS a Person
+ * - Inherits: name, phone, getName(), getPhone()
+ * - Adds: specialist, hourlyRate, schedule, appointments
  * 
  * Key Relationships:
  * - Doctor → Schedule (doctor's working availability)
  * - Doctor → ArrayList<Appointment> (doctor's scheduled appointments)
  * 
  * Access Modifiers:
- * - Private: name, specialist, hourlyRate, availability, appointments (encapsulated data)
+ * - Protected (inherited): name, phone (from Person)
+ * - Private: specialist, hourlyRate, schedule, appointments (encapsulated data)
  * - Private Static: doctorCount (static counter)
  * - Public: Getters, setters, appointment management methods (interface)
  */
-public class Doctor implements Displayable {
-    // Private fields - encapsulated data
-    private String name;
+public class Doctor extends Person implements Displayable {
+    // Private fields - doctor-specific encapsulated data
     private String specialist;
     private double hourlyRate;
     private Schedule schedule;       // Doctor's working schedule
@@ -34,34 +40,33 @@ public class Doctor implements Displayable {
      * @param name Doctor's full name
      * @param specialist Doctor's medical specialty
      * @param hourlyRate Doctor's hourly rate (requires admin password to modify)
-     * @param availability List of Schedule objects showing doctor's availability
+     * @param schedule Schedule object showing doctor's availability
+     * @param phone Doctor's contact phone number
      */
-    public Doctor(String name, String specialist, double hourlyRate, Schedule schedule) {
-        // Even the constructor should use the setters to ensure validation logic is applied immediately
-        setName(name);
+    public Doctor(String name, String specialist, double hourlyRate, Schedule schedule, String phone) {
+        // Call superclass constructor to initialize inherited fields
+        super(name, phone);
+        
+        // Initialize doctor-specific fields using setters to trigger validation logic
         setSpecialist(specialist);
         this.hourlyRate = hourlyRate;
         setSchedule(schedule);
         this.appointments = new ArrayList<>();  // Initialize empty appointment list
         doctorCount++;
     }
+    
+    /**
+     * Constructor (overloaded): Creates a new doctor with specialization and schedule (no phone)
+     * @param name Doctor's full name
+     * @param specialist Doctor's medical specialty
+     * @param hourlyRate Doctor's hourly rate (requires admin password to modify)
+     * @param schedule Schedule object showing doctor's availability
+     */
+    public Doctor(String name, String specialist, double hourlyRate, Schedule schedule) {
+        this(name, specialist, hourlyRate, schedule, "No Phone");
+    }
 
     // --- SETTERS (Mutators) with Business Logic ---
-
-    /**
-     * Sets the doctor name
-     * Condition: Prevents "anonymous" doctors or accidental empty strings
-     * @param name Doctor's full name
-     */
-    public void setName(String name) {
-        // Condition: Prevents "anonymous" doctors or accidental empty strings
-        if (name == null || name.trim().isEmpty()) {
-            System.out.println("Error: Name cannot be empty. Setting to 'Unknown Doctor'.");
-            this.name = "Unknown Doctor";
-        } else {
-            this.name = name;
-        }
-    }
 
     /**
      * Sets the doctor's medical specialty
@@ -113,11 +118,11 @@ public class Doctor implements Displayable {
     // --- GETTERS (Accessors) with Business Logic ---
 
     /**
-     * Gets the doctor name in professional format
+     * Gets the doctor's name in professional display format
      * Condition: Format the output for professional display
      * @return Doctor's name with "Dr." prefix
      */
-    public String getName() {
+    public String getDisplayName() {
         // Condition: Format the output for professional display
         if (this.name == null) return "No Name Assigned";
         return "Dr. " + this.name;
@@ -169,7 +174,7 @@ public class Doctor implements Displayable {
     @Override
     public void display() {
         System.out.println("==== DOCTOR DETAILS ====");
-        System.out.println("Name: " + name);
+        System.out.println("Name: " + getDisplayName());
         System.out.println("Specialty: " + getSpecialist());
         System.out.println("Hourly Rate: $" + hourlyRate);
         if (schedule != null) {
@@ -187,7 +192,7 @@ public class Doctor implements Displayable {
      */
     @Override
     public String getSummary() {
-        return name + " (" + specialist + ", Active: " + getActiveAppointmentCount() + " appointments)";
+        return getDisplayName() + " (" + specialist + ", Active: " + getActiveAppointmentCount() + " appointments)";
     }
 
     // --- APPOINTMENT MANAGEMENT METHODS ---
@@ -230,19 +235,22 @@ public class Doctor implements Displayable {
 
     /**
      * Checks if doctor has a conflicting appointment at the given time slot
-     * Business Logic: Prevents double-booking (doctor cannot see two patients at once)
+     * Business Logic: Prevents double-booking for THIS DOCTOR (doctor cannot see two patients at once)
+     * Week 6 Feedback: Simplified to check only if THIS DOCTOR has an appointment at this time,
+     * not the time slot's overall availability.
      * @param timeSlot The time slot to check
-     * @return true if doctor already has an appointment during this time slot
+     * @return true if this doctor already has an appointment during this time slot
      */
     public boolean hasConflictingAppointment(TimeSlot timeSlot) {
         if (timeSlot == null) {
             return false;
         }
         
-        // Check all active appointments for time conflicts
+        // Check all active appointments for THIS DOCTOR at this time slot
         for (Appointment apt : appointments) {
-            if (!apt.isActive()) {
-                continue; // Skip cancelled/completed appointments
+            // Only check BOOKED appointments (not cancelled)
+            if (apt.getStatus() == AppointmentStatus.CANCELLED) {
+                continue;
             }
             
             TimeSlot existingSlot = apt.getTimeSlot();
@@ -250,19 +258,10 @@ public class Doctor implements Displayable {
                 continue;
             }
             
-            // Same date and overlapping times = conflict
-            if (existingSlot.getDate().equals(timeSlot.getDate())) {
-                // Check if times overlap
-                String existingStart = existingSlot.getStartRaw();
-                String existingEnd = existingSlot.getEndRaw();
-                String newStart = timeSlot.getStartRaw();
-                String newEnd = timeSlot.getEndRaw();
-                
-                // Simple overlap check: if new appointment starts before existing ends
-                if (newStart.compareTo(existingEnd) < 0 && 
-                    newEnd.compareTo(existingStart) > 0) {
-                    return true; // Conflict found
-                }
+            // If same time slot is already booked for this doctor, conflict exists
+            if (existingSlot.getDate().equals(timeSlot.getDate()) &&
+                existingSlot.getStart().equals(timeSlot.getStart())) {
+                return true; // This doctor is already booked at this time
             }
         }
         return false;
@@ -271,6 +270,8 @@ public class Doctor implements Displayable {
     /**
      * Validates if an appointment can be booked for this doctor
      * Business Logic: Ensures appointment doesn't violate business rules
+     * Week 6 Feedback: Check only if THIS DOCTOR already has an appointment,
+     * not the time slot's overall availability (that's managed by Appointment class)
      * @param appointment The appointment to validate
      * @return true if appointment can be booked, false otherwise
      */
@@ -282,11 +283,6 @@ public class Doctor implements Displayable {
         
         if (hasConflictingAppointment(appointment.getTimeSlot())) {
             System.out.println("Error: Doctor already has an appointment at this time.");
-            return false;
-        }
-        
-        if (!appointment.getTimeSlot().isAvailable()) {
-            System.out.println("Error: Selected time slot is not available.");
             return false;
         }
         

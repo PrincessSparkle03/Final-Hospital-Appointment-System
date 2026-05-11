@@ -270,6 +270,15 @@ public class Appointment implements Displayable, StatusManageable {
     // --- BUSINESS LOGIC METHODS ---
 
     /**
+     * Checks if this appointment can be rescheduled
+     * Week 6 Feedback: Rescheduling is managed through cancel and rebook
+     * @return false - rescheduling not supported in simplified model
+     */
+    public boolean canBeRescheduled() {
+        return false;  // Rescheduling handled through cancel + new appointment
+    }
+
+    /**
      * Checks if this appointment can be cancelled
      * Logic: Only BOOKED appointments can be cancelled
      * @return true if appointment can be cancelled
@@ -279,42 +288,23 @@ public class Appointment implements Displayable, StatusManageable {
     }
 
     /**
-     * Checks if this appointment can be rescheduled
-     * Logic: Only BOOKED appointments can be rescheduled
-     * @return true if appointment can be rescheduled
+     * Checks if this appointment is still active (booked, not cancelled)
+     * Week 6 Feedback: Only BOOKED appointments are active (COMPLETE and RESCHEDULE removed)
+     * @return true if appointment is BOOKED
      */
-    public boolean canBeRescheduled() {
+    public boolean isActive() {
         return status == AppointmentStatus.BOOKED;
     }
 
     /**
-     * Checks if this appointment is still active (not cancelled or completed)
-     * @return true if appointment is active
-     */
-    public boolean isActive() {
-        return status == AppointmentStatus.BOOKED || status == AppointmentStatus.RESCHEDULED;
-    }
-
-    /**
      * Cancels this appointment
-     * Logic: Updates status to CANCELLED and frees up the time slot
+     * Logic: Updates status to CANCELLED
+     * Week 6 Feedback: Simplified - only BOOKED and CANCELLED states exist
      * @return true if cancellation was successful
      */
     public boolean cancel() {
         if (canBeCancelled()) {
             setStatus(AppointmentStatus.CANCELLED);
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Marks this appointment as completed
-     * @return true if status update was successful
-     */
-    public boolean markAsCompleted() {
-        if (status == AppointmentStatus.BOOKED) {
-            setStatus(AppointmentStatus.COMPLETED);
             return true;
         }
         return false;

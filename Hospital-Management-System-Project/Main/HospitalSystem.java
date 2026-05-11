@@ -213,6 +213,15 @@ public class HospitalSystem implements Searchable {
      * @param timeSlot The time slot
      * @return The created Appointment object or null if booking failed
      */
+    /**
+     * Books an appointment for a patient with a doctor at a specific time slot
+     * Week 6 Feedback: Multiple doctors can share the same time slot
+     * Availability is controlled by checking each doctor's appointments, not the time slot's global status
+     * @param patient The patient to book
+     * @param doctor The doctor to book with
+     * @param timeSlot The time slot to book
+     * @return Appointment object if successful, null if booking failed
+     */
     public Appointment bookAppointment(Patient patient, Doctor doctor, TimeSlot timeSlot) {
         // Validate inputs
         if (patient == null || doctor == null || timeSlot == null) {
@@ -220,13 +229,8 @@ public class HospitalSystem implements Searchable {
             return null;
         }
 
-        // Check if time slot is available
-        if (!timeSlot.isAvailable()) {
-            System.out.println("Error: Selected time slot is already booked.");
-            return null;
-        }
-
-        // Check for conflicting appointments with the doctor
+        // Check for conflicting appointments with THIS DOCTOR only
+        // (Other doctors can use the same time slot)
         if (doctor.hasConflictingAppointment(timeSlot)) {
             System.out.println("Error: Doctor is already booked at this time.");
             return null;
@@ -254,9 +258,6 @@ public class HospitalSystem implements Searchable {
         // Add to system collections
         appointments.add(appointment);
         appointmentMap.put(appointmentId, appointment);
-
-        // Mark time slot as unavailable only AFTER successful booking
-        timeSlot.setAvailable(false);
 
         return appointment;
     }
@@ -288,17 +289,12 @@ public class HospitalSystem implements Searchable {
      * Marks an appointment as completed
      * @param appointment The appointment to complete
      * @return true if marking as completed was successful
+     * NOTE: Week 6 Update - COMPLETED status removed. Use cancelAppointment instead.
      */
     public boolean completeAppointment(Appointment appointment) {
-        if (appointment == null || !appointments.contains(appointment)) {
-            System.out.println("Error: Appointment not found in system.");
-            return false;
-        }
-
-        if (appointment.markAsCompleted()) {
-            System.out.println("Appointment " + appointment.getId() + " marked as completed.");
-            return true;
-        }
+        // COMPLETED status no longer exists per Week 6 feedback
+        // Appointments are either BOOKED or CANCELLED
+        System.out.println("Note: COMPLETED status has been removed. Use cancelAppointment() instead.");
         return false;
     }
 
